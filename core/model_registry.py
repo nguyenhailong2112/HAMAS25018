@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from threading import Lock
 
+from core.inference_runtime import YOLO_DEVICE
 from ultralytics import YOLO
 
 from core.logger_config import get_logger
@@ -28,7 +29,8 @@ class ModelRegistry:
                 return bundle
 
             model = YOLO(model_path)
-            model.to("cuda")
+            model.to(YOLO_DEVICE)
+            logger.info("Loaded YOLO model on %s: %s", YOLO_DEVICE, model_path)
 
             try:
                 model.fuse()

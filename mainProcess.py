@@ -23,6 +23,7 @@ from core.elevator_runtime import ElevatorRuntime
 from core.frame_store import FrameStore
 from core.hik_rcs_bridge import HikRcsBridge
 from core.history_logger import HistoryLogger
+from core.inference_runtime import YOLO_DEVICE
 from core.logger_config import get_logger
 from core.model_registry import ModelRegistry
 from core.path_utils import PROJECT_ROOT, ensure_exists, resolve_project_path
@@ -239,7 +240,7 @@ class CentralBackendRuntime:
                 conf=self.rule_cfg.conf_threshold,
                 imgsz=self.rule_cfg.img_size,
                 verbose=False,
-                device=0,
+                device=YOLO_DEVICE,
             )
             detect_ms = ((time.perf_counter() - t0) * 1000.0) / max(1, len(live_frames))
             for (worker, live_frame), result in zip(live_frames, results):

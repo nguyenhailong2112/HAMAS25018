@@ -7,7 +7,7 @@ import atexit
 from dataclasses import dataclass
 from collections import deque
 
-import torch
+from core.inference_runtime import YOLO_DEVICE
 from ultralytics import YOLO
 
 
@@ -107,7 +107,7 @@ class InferenceScheduler:
                 conf=self.conf,
                 imgsz=self.imgsz,
                 verbose=False,
-                device=0,
+                device=YOLO_DEVICE,
             )
 
             for req, res in zip(batch, results):
