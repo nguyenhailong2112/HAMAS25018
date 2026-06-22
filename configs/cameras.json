@@ -1,8 +1,8 @@
 [
   {
     "camera_id": "cam1",
-    "camera_type": "trolley_slot",
-    "name": "Cam 01",
+    "camera_type": "slot_pallet",
+    "name": "Camera 1",
     "source_type": "rtsp",
     "source_path": "rtsp://admin:rtctech!@192.168.11.1:554/Streaming/Channels/101",
     "model_path": "weights/best.pt",
@@ -12,8 +12,8 @@
   },
   {
     "camera_id": "cam2",
-    "camera_type": "trolley_slot",
-    "name": "Cam 02",
+    "camera_type": "slot_pallet",
+    "name": "Camera 2",
     "source_type": "rtsp",
     "source_path": "rtsp://admin:rtctech!@192.168.11.2:554/Streaming/Channels/101",
     "model_path": "weights/best.pt",
@@ -23,8 +23,8 @@
   },
   {
     "camera_id": "cam3",
-    "camera_type": "trolley_slot",
-    "name": "Cam 03",
+    "camera_type": "slot_pallet",
+    "name": "Camera 3",
     "source_type": "rtsp",
     "source_path": "rtsp://admin:rtctech!@192.168.11.3:554/Streaming/Channels/101",
     "model_path": "weights/best.pt",
@@ -34,8 +34,8 @@
   },
   {
     "camera_id": "cam4",
-    "camera_type": "pallet_slot",
-    "name": "Pallet Packing 1",
+    "camera_type": "slot_pallet",
+    "name": "Camera 4",
     "source_type": "rtsp",
     "source_path": "rtsp://admin:rtctech!@192.168.11.4:554/Streaming/Channels/101",
     "model_path": "weights/best.pt",
@@ -45,8 +45,8 @@
   },
   {
     "camera_id": "cam5",
-    "camera_type": "pallet_slot",
-    "name": "Pallet Packing 2",
+    "camera_type": "slot_pallet",
+    "name": "Camera 5",
     "source_type": "rtsp",
     "source_path": "rtsp://admin:rtctech!@192.168.11.5:554/Streaming/Channels/101",
     "model_path": "weights/best.pt",
@@ -56,56 +56,12 @@
   },
   {
     "camera_id": "cam6",
-    "camera_type": "elevator",
-    "name": "Thang May 1",
+    "camera_type": "slot_trolley",
+    "name": "Camera 6",
     "source_type": "rtsp",
     "source_path": "rtsp://admin:rtctech!@192.168.11.6:554/Streaming/Channels/101",
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam6.json",
-    "infer_every_n_frames": 2,
-    "enabled": true
-  },
-  {
-    "camera_id": "cam7",
-    "camera_type": "elevator",
-    "name": "Thang May 2",
-    "source_type": "rtsp",
-    "source_path": "rtsp://admin:rtctech!@192.168.11.7:554/Streaming/Channels/101",
-    "model_path": "weights/best.pt",
-    "zone_config": "configs/zones_cam7.json",
-    "infer_every_n_frames": 2,
-    "enabled": false
-  },
-  {
-    "camera_id": "cam8",
-    "camera_type": "trolley_slot",
-    "name": "Trolley 3T",
-    "source_type": "rtsp",
-    "source_path": "rtsp://admin:rtctech!@192.168.11.8:554/Streaming/Channels/101",
-    "model_path": "weights/best.pt",
-    "zone_config": "configs/zones_cam8.json",
-    "infer_every_n_frames": 2,
-    "enabled": true
-  },
-  {
-    "camera_id": "cam9",
-    "camera_type": "pallet_slot",
-    "name": "Pallet FG 1",
-    "source_type": "rtsp",
-    "source_path": "rtsp://admin:rtctech!@192.168.11.9:554/Streaming/Channels/101",
-    "model_path": "weights/best.pt",
-    "zone_config": "configs/zones_cam9.json",
-    "infer_every_n_frames": 2,
-    "enabled": true
-  },
-  {
-    "camera_id": "cam10",
-    "camera_type": "pallet_slot",
-    "name": "Pallet FG 2",
-    "source_type": "rtsp",
-    "source_path": "rtsp://admin:rtctech!@192.168.11.10:554/Streaming/Channels/101",
-    "model_path": "weights/best.pt",
-    "zone_config": "configs/zones_cam10.json",
     "infer_every_n_frames": 2,
     "enabled": true
   }

@@ -1,4 +1,4 @@
-# Shared logging configuration for PIDVN25006
+# Shared logging configuration for HAMAS25018
 from __future__ import annotations
 
 import logging
@@ -30,9 +30,9 @@ def _configure_root_if_needed(default_level: int = logging.INFO) -> None:
     if _CONFIGURED:
         return
 
-    log_dir = os.getenv("PIDVN_LOG_DIR", str(user_config_dir() / "logs"))
+    log_dir = os.getenv("HAMAS_LOG_DIR", str(user_config_dir() / "logs"))
     os.makedirs(log_dir, exist_ok=True)
-    log_name = os.getenv("PIDVN_LOG_NAME", "app.log")
+    log_name = os.getenv("HAMAS_LOG_NAME", "app.log")
     log_file = os.path.join(log_dir, log_name)
 
     root = logging.getLogger()

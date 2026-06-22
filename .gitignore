@@ -7,6 +7,9 @@ __pycache__/
 *.pyo
 *.pyd
 
+# agent
+.agents
+
 # dataset
 dataset/
 
@@ -15,9 +18,6 @@ dataTest/
 
 # outputs
 outputs/
-
-# weights
-weights/
 
 # logs
 logs/

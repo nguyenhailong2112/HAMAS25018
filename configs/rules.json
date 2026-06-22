@@ -1,13 +1,13 @@
 {
   "spatial_method": "bbox_intersects",
-  "enter_window": 5,
-  "enter_count": 3,
+  "enter_window": 3,
+  "enter_count": 2,
   "exit_window": 7,
   "exit_count": 5,
   "unknown_timeout_sec": 2.0,
   "conf_threshold": 0.5,
   "img_size": 416,
-  "batch_size": 4,
-  "batch_timeout_ms": 10,
-  "max_pending_requests": 24
+  "batch_size": 1,
+  "batch_timeout_ms": 0,
+  "max_pending_requests": 6
 }

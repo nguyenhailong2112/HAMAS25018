@@ -1,11 +1,7 @@
 {
   "camera_id": "cam6",
-  "zones": [
-    {
-      "zone_id": "LIFT_1",
-      "target_object": "*",
-      "spatial_method": "bbox_intersects",
-      "polygon": [[0.0, 0.05], [1, 0.05], [1, 1], [0.0, 1]]
-    }
+  "slots": [
+    { "slot_id": "S1", "target_object": "trolley", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.18, 0.20], [0.44, 0.20], [0.44, 0.52], [0.18, 0.52]] },
+    { "slot_id": "S2", "target_object": "trolley", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.56, 0.20], [0.82, 0.20], [0.82, 0.52], [0.56, 0.52]] }
   ]
 }

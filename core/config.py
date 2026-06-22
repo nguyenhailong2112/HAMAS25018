@@ -49,7 +49,9 @@ def load_camera_configs(path: str | Path) -> list[CameraConfig]:
 def load_zone_configs(path: str | Path) -> list[ZoneConfig]:
     path = ensure_exists(path, "Zone config")
     data = json.loads(path.read_text(encoding="utf-8-sig"))
-    zone_items = data["zones"]
+    zone_items = data.get("zones") or data.get("slots")
+    if not isinstance(zone_items, list):
+        raise ValueError(f"Zone config must contain a 'zones' or 'slots' list: {path}")
     allowed_spatial_methods = {"bbox_center", "bbox_all_corners", "bbox_intersects", ""}
 
     zones: list[ZoneConfig] = []
@@ -57,16 +59,28 @@ def load_zone_configs(path: str | Path) -> list[ZoneConfig]:
         spatial_method = _coerce_str(item.get("spatial_method", ""))
         if spatial_method not in allowed_spatial_methods:
             raise ValueError(f"Unsupported zone spatial_method={spatial_method} in {path}")
+        raw_target_objects = item.get("target_objects")
+        if isinstance(raw_target_objects, list):
+            target_objects = [str(value).strip() for value in raw_target_objects if str(value).strip()]
+        else:
+            target_objects = []
         target_object = _coerce_str(item.get("target_object", "")).strip()
-        if not target_object:
-            raise ValueError(f"Zone target_object is required in {path}")
+        if target_object and not target_objects:
+            target_objects = [target_object]
+        if not target_objects:
+            raise ValueError(f"Zone target_object or target_objects is required in {path}")
+        zone_id = _coerce_str(item.get("zone_id", item.get("slot_id", ""))).strip()
+        if not zone_id:
+            raise ValueError(f"Zone zone_id or slot_id is required in {path}")
         polygon = [(float(x), float(y)) for x, y in item["polygon"]]
         zones.append(
             ZoneConfig(
-                zone_id=item["zone_id"],
+                zone_id=zone_id,
                 target_object=target_object,
                 polygon=polygon,
                 spatial_method=spatial_method or None,
+                target_objects=target_objects,
+                enabled=bool(item.get("enabled", True)),
             )
         )
     return zones
@@ -138,7 +152,7 @@ def validate_camera_configs(configs: list[CameraConfig]) -> None:
                 ensure_exists(cfg.zone_config, f"{cfg.camera_id} zone_config")
             except FileNotFoundError as exc:
                 errors.append(str(exc))
-        elif cfg.camera_type in {"trolley_slot", "pallet_slot"}:
+        elif cfg.camera_type in {"trolley_slot", "pallet_slot", "slot_pallet", "slot_trolley"}:
             errors.append(f"{cfg.camera_id}: zone_config required for slot camera")
 
     if errors:
@@ -179,10 +193,3 @@ def validate_ingest_config(ingest_cfg: IngestConfig) -> None:
     if errors:
         raise ValueError("Ingest config validation failed:\n- " + "\n- ".join(errors))
 
-def validate_gui_config(gui_cfg: dict) -> None:
-    errors = []
-    for key in ("grid_rows", "grid_cols", "cell_min_width", "cell_min_height"):
-        if key not in gui_cfg:
-            errors.append(f"gui.json missing {key}")
-    if errors:
-        raise ValueError("GUI config validation failed:\n- " + "\n- ".join(errors))

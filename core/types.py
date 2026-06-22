@@ -33,6 +33,8 @@ class ZoneConfig:
     target_object: str
     polygon: list[tuple[float, float]]
     spatial_method: str | None = None
+    target_objects: list[str] | None = None
+    enabled: bool = True
 
 
 @dataclass

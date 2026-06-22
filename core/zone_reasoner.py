@@ -15,7 +15,8 @@ class ZoneReasoner:
             matched_confidence = None
 
             for det in detection_result.detections:
-                if not self._matches_target_object(zone.target_object, det.class_name):
+                targets = zone.target_objects or [zone.target_object]
+                if not self._matches_target_object(targets, det.class_name):
                     continue
 
                 spatial_method = zone.spatial_method or self.rules.spatial_method
@@ -56,8 +57,15 @@ class ZoneReasoner:
         raise ValueError(f"Unsupported spatial_method: {spatial_method}")
 
     @staticmethod
-    def _matches_target_object(target_object: str, class_name: str) -> bool:
-        normalized = (target_object or "").strip().lower()
-        if normalized in {"*", "any", "any_object", "all"}:
+    def _matches_target_object(target_object: str | list[str], class_name: str) -> bool:
+        if isinstance(target_object, list):
+            normalized_targets = {str(value).strip().lower() for value in target_object if str(value).strip()}
+        else:
+            normalized = (target_object or "").strip().lower()
+            normalized_targets = {normalized} if normalized else set()
+
+        if not normalized_targets:
+            return False
+        if normalized_targets.intersection({"*", "any", "any_object", "all"}):
             return True
-        return class_name.strip().lower() == normalized
+        return class_name.strip().lower() in normalized_targets

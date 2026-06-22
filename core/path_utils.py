@@ -4,7 +4,7 @@ import shutil
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-APP_NAME = "PIDVN25006"
+APP_NAME = "HAMAS25018"
 
 
 def resolve_project_path(path_str: str | Path) -> Path:
