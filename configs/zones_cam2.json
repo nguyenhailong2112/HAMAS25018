@@ -1,8 +1,84 @@
 {
-  "camera_id": "cam2",
-  "slots": [
-    { "slot_id": "S1", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.08, 0.10], [0.28, 0.10], [0.28, 0.30], [0.08, 0.30]] },
-    { "slot_id": "S2", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.36, 0.10], [0.56, 0.10], [0.56, 0.30], [0.36, 0.30]] },
-    { "slot_id": "S3", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.64, 0.10], [0.84, 0.10], [0.84, 0.30], [0.64, 0.30]] }
+  "source": "C:\\Users\\longn\\PyCharmMiscProject\\HAMAS25018\\dataTest\\imageTest\\Cam2\\img.PNG",
+  "target_object": "pallet",
+  "zones": [
+    {
+      "zone_id": "A1",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.117778,
+          0.495802
+        ],
+        [
+          0.157778,
+          0.495802
+        ],
+        [
+          0.157778,
+          0.560988
+        ],
+        [
+          0.117778,
+          0.560988
+        ],
+        [
+          0.117778,
+          0.495802
+        ]
+      ]
+    },
+    {
+      "zone_id": "A2",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.313333,
+          0.501728
+        ],
+        [
+          0.361111,
+          0.501728
+        ],
+        [
+          0.361111,
+          0.582716
+        ],
+        [
+          0.313333,
+          0.582716
+        ],
+        [
+          0.313333,
+          0.501728
+        ]
+      ]
+    },
+    {
+      "zone_id": "A3",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.531111,
+          0.517531
+        ],
+        [
+          0.591111,
+          0.517531
+        ],
+        [
+          0.591111,
+          0.616296
+        ],
+        [
+          0.531111,
+          0.616296
+        ],
+        [
+          0.531111,
+          0.517531
+        ]
+      ]
+    }
   ]
 }

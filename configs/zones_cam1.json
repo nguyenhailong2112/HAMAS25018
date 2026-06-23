@@ -1,12 +1,188 @@
 {
-  "camera_id": "cam1",
-  "slots": [
-    { "slot_id": "S1", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.02, 0.05], [0.12, 0.05], [0.12, 0.18], [0.02, 0.18]] },
-    { "slot_id": "S2", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.15, 0.05], [0.25, 0.05], [0.25, 0.18], [0.15, 0.18]] },
-    { "slot_id": "S3", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.28, 0.05], [0.38, 0.05], [0.38, 0.18], [0.28, 0.18]] },
-    { "slot_id": "S4", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.41, 0.05], [0.51, 0.05], [0.51, 0.18], [0.41, 0.18]] },
-    { "slot_id": "S5", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.54, 0.05], [0.64, 0.05], [0.64, 0.18], [0.54, 0.18]] },
-    { "slot_id": "S6", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.67, 0.05], [0.77, 0.05], [0.77, 0.18], [0.67, 0.18]] },
-    { "slot_id": "S7", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.80, 0.05], [0.90, 0.05], [0.90, 0.18], [0.80, 0.18]] }
+  "source": "C:\\Users\\longn\\PyCharmMiscProject\\HAMAS25018\\dataTest\\imageTest\\Cam1\\img.PNG",
+  "target_object": "pallet",
+  "zones": [
+    {
+      "zone_id": "A3",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.294936,
+          0.421991
+        ],
+        [
+          0.336116,
+          0.421991
+        ],
+        [
+          0.336116,
+          0.493314
+        ],
+        [
+          0.294936,
+          0.493314
+        ],
+        [
+          0.294936,
+          0.421991
+        ]
+      ]
+    },
+    {
+      "zone_id": "A2",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.409572,
+          0.366518
+        ],
+        [
+          0.444073,
+          0.366518
+        ],
+        [
+          0.444073,
+          0.425953
+        ],
+        [
+          0.409572,
+          0.425953
+        ],
+        [
+          0.409572,
+          0.366518
+        ]
+      ]
+    },
+    {
+      "zone_id": "A1",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.504174,
+          0.326895
+        ],
+        [
+          0.51419,
+          0.326895
+        ],
+        [
+          0.51419,
+          0.342744
+        ],
+        [
+          0.504174,
+          0.342744
+        ],
+        [
+          0.504174,
+          0.326895
+        ]
+      ]
+    },
+    {
+      "zone_id": "B1",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.604341,
+          0.192174
+        ],
+        [
+          0.614357,
+          0.192174
+        ],
+        [
+          0.614357,
+          0.206043
+        ],
+        [
+          0.604341,
+          0.206043
+        ],
+        [
+          0.604341,
+          0.192174
+        ]
+      ]
+    },
+    {
+      "zone_id": "B2",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.632165,
+          0.301139
+        ],
+        [
+          0.649972,
+          0.301139
+        ],
+        [
+          0.649972,
+          0.328876
+        ],
+        [
+          0.632165,
+          0.328876
+        ],
+        [
+          0.632165,
+          0.301139
+        ]
+      ]
+    },
+    {
+      "zone_id": "B3",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.721202,
+          0.402179
+        ],
+        [
+          0.750139,
+          0.402179
+        ],
+        [
+          0.750139,
+          0.449728
+        ],
+        [
+          0.721202,
+          0.449728
+        ],
+        [
+          0.721202,
+          0.402179
+        ]
+      ]
+    },
+    {
+      "zone_id": "B4",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.593211,
+          0.459633
+        ],
+        [
+          0.617696,
+          0.459633
+        ],
+        [
+          0.617696,
+          0.497276
+        ],
+        [
+          0.593211,
+          0.497276
+        ],
+        [
+          0.593211,
+          0.459633
+        ]
+      ]
+    }
   ]
 }

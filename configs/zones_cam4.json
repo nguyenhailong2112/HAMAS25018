@@ -1,9 +1,110 @@
 {
-  "camera_id": "cam4",
-  "slots": [
-    { "slot_id": "S1", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.05, 0.08], [0.24, 0.08], [0.24, 0.26], [0.05, 0.26]] },
-    { "slot_id": "S2", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.28, 0.08], [0.47, 0.08], [0.47, 0.26], [0.28, 0.26]] },
-    { "slot_id": "S3", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.51, 0.08], [0.70, 0.08], [0.70, 0.26], [0.51, 0.26]] },
-    { "slot_id": "S4", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.74, 0.08], [0.93, 0.08], [0.93, 0.26], [0.74, 0.26]] }
+  "source": "C:\\Users\\longn\\PyCharmMiscProject\\HAMAS25018\\dataTest\\imageTest\\Cam4\\20260601_20260601103255_20260601103937_103256_000062.jpg",
+  "target_object": "pallet",
+  "zones": [
+    {
+      "zone_id": "A1",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.310417,
+          0.334568
+        ],
+        [
+          0.345139,
+          0.334568
+        ],
+        [
+          0.345139,
+          0.388889
+        ],
+        [
+          0.310417,
+          0.388889
+        ],
+        [
+          0.310417,
+          0.334568
+        ]
+      ]
+    },
+    {
+      "zone_id": "A2",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.490278,
+          0.346914
+        ],
+        [
+          0.527083,
+          0.346914
+        ],
+        [
+          0.527083,
+          0.409877
+        ],
+        [
+          0.490278,
+          0.409877
+        ],
+        [
+          0.490278,
+          0.346914
+        ]
+      ]
+    },
+    {
+      "zone_id": "A3",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.661111,
+          0.355556
+        ],
+        [
+          0.702083,
+          0.355556
+        ],
+        [
+          0.702083,
+          0.420988
+        ],
+        [
+          0.661111,
+          0.420988
+        ],
+        [
+          0.661111,
+          0.355556
+        ]
+      ]
+    },
+    {
+      "zone_id": "A4",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.780556,
+          0.360494
+        ],
+        [
+          0.816667,
+          0.360494
+        ],
+        [
+          0.816667,
+          0.417284
+        ],
+        [
+          0.780556,
+          0.417284
+        ],
+        [
+          0.780556,
+          0.360494
+        ]
+      ]
+    }
   ]
 }

@@ -31,3 +31,11 @@ Vision Server for CCTV slot occupancy monitoring.
 ```bash
 python app/main_vision_server.py
 ```
+
+## Docs
+
+- `docs/README.md`
+- `docs/12_operation_runbook.md`
+- `docs/13_current_state_report.md`
+- `docs/14_integration_handoff.md`
+

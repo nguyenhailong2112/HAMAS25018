@@ -1,9 +1,110 @@
 {
-  "camera_id": "cam5",
-  "slots": [
-    { "slot_id": "S1", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.05, 0.08], [0.24, 0.08], [0.24, 0.26], [0.05, 0.26]] },
-    { "slot_id": "S2", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.28, 0.08], [0.47, 0.08], [0.47, 0.26], [0.28, 0.26]] },
-    { "slot_id": "S3", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.51, 0.08], [0.70, 0.08], [0.70, 0.26], [0.51, 0.26]] },
-    { "slot_id": "S4", "target_object": "pallet", "enabled": true, "spatial_method": "bbox_intersects", "polygon": [[0.74, 0.08], [0.93, 0.08], [0.93, 0.26], [0.74, 0.26]] }
+  "source": "C:\\Users\\longn\\PyCharmMiscProject\\HAMAS25018\\dataTest\\imageTest\\Cam5\\192-168-53-70_Camera 06_192-168-53-70_20260602105303_8037164.bmp",
+  "target_object": "trolley",
+  "zones": [
+    {
+      "zone_id": "A1",
+      "target_object": "trolley",
+      "polygon": [
+        [
+          0.430556,
+          0.728395
+        ],
+        [
+          0.478472,
+          0.728395
+        ],
+        [
+          0.478472,
+          0.801235
+        ],
+        [
+          0.430556,
+          0.801235
+        ],
+        [
+          0.430556,
+          0.728395
+        ]
+      ]
+    },
+    {
+      "zone_id": "A2",
+      "target_object": "trolley",
+      "polygon": [
+        [
+          0.725694,
+          0.737037
+        ],
+        [
+          0.769444,
+          0.737037
+        ],
+        [
+          0.769444,
+          0.806173
+        ],
+        [
+          0.725694,
+          0.806173
+        ],
+        [
+          0.725694,
+          0.737037
+        ]
+      ]
+    },
+    {
+      "zone_id": "A3",
+      "target_object": "trolley",
+      "polygon": [
+        [
+          0.443056,
+          0.222222
+        ],
+        [
+          0.484028,
+          0.222222
+        ],
+        [
+          0.484028,
+          0.292593
+        ],
+        [
+          0.443056,
+          0.292593
+        ],
+        [
+          0.443056,
+          0.222222
+        ]
+      ]
+    },
+    {
+      "zone_id": "A4",
+      "target_object": "trolley",
+      "polygon": [
+        [
+          0.716667,
+          0.233333
+        ],
+        [
+          0.761111,
+          0.233333
+        ],
+        [
+          0.761111,
+          0.309877
+        ],
+        [
+          0.716667,
+          0.309877
+        ],
+        [
+          0.716667,
+          0.233333
+        ]
+      ]
+    }
   ]
 }
