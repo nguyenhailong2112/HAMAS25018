@@ -96,7 +96,7 @@ class VisionRuntime:
         self.preview_height = int(self.runtime_cfg.get("preview_height", 540))
         self.schedule_sleep_sec = max(0.001, float(self.runtime_cfg.get("schedule_sleep_ms", 5)) / 1000.0)
         server_cfg = self.runtime_cfg.get("server", {})
-        self.server_host = str(server_cfg.get("host", "192.168.53.xxx"))
+        self.server_host = str(server_cfg.get("host", "192.168.1.64"))
         self.server_port = int(server_cfg.get("port", 2112))
         self.websocket_path = str(server_cfg.get("websocket_path", "/ws/slot-states"))
         raw_allowlist = server_cfg.get("ip_allowlist", [])

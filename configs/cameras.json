@@ -3,8 +3,8 @@
     "camera_id": "cam1",
     "camera_type": "slot_pallet",
     "name": "Camera 1",
-    "source_type": "rtsp",
-    "source_path": "rtsp://admin:rtctech!@192.168.53.xx:554/Streaming/Channels/101",
+    "source_type": "video",
+    "source_path": "dataTest/videoTest/20260601_20260601162835_20260601162849_162836.mp4",
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam1.json",
     "infer_every_n_frames": 2,
@@ -14,8 +14,8 @@
     "camera_id": "cam2",
     "camera_type": "slot_pallet",
     "name": "Camera 2",
-    "source_type": "rtsp",
-    "source_path": "rtsp://admin:rtctech!@192.168.53.xx:554/Streaming/Channels/101",
+    "source_type": "video",
+    "source_path": "dataTest/videoTest/20260601_20260601162835_20260601162849_162836.mp4",
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam2.json",
     "infer_every_n_frames": 2,
@@ -30,7 +30,7 @@
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam3.json",
     "infer_every_n_frames": 2,
-    "enabled": true
+    "enabled": false
   },
   {
     "camera_id": "cam4",
@@ -41,7 +41,7 @@
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam4.json",
     "infer_every_n_frames": 2,
-    "enabled": true
+    "enabled": false
   },
   {
     "camera_id": "cam5",
@@ -52,14 +52,14 @@
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam5.json",
     "infer_every_n_frames": 2,
-    "enabled": true
+    "enabled": false
   },
   {
     "camera_id": "cam6",
     "camera_type": "slot_trolley",
     "name": "Camera 6",
-    "source_type": "rtsp",
-    "source_path": "rtsp://admin:rtctech!@192.168.53.xx:554/Streaming/Channels/101",
+    "source_type": "video",
+    "source_path": "dataTest/videoTest/20260601_20260601162835_20260601162849_162836.mp4",
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam6.json",
     "infer_every_n_frames": 2,

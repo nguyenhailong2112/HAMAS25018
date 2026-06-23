@@ -10,7 +10,7 @@
   "preview_width": 960,
   "preview_height": 540,
   "server": {
-    "host": "192.168.53.xxx",
+    "host": "192.168.1.64",
     "port": 2112,
     "websocket_path": "/ws/slot-states",
     "rest_enabled": true,
