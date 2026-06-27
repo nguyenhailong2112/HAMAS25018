@@ -18,6 +18,7 @@ Muc tieu:
 - `configs/zones_cam1.json` den `configs/zones_cam6.json` da duoc ve ROI.
 - Camera RTSP reachable.
 - May co quyen doc/write thu muc project.
+- PC Vision da duoc cap IP tinh `192.168.53.111/24`, gateway `192.168.53.254`.
 
 ## 3. Cau Hinh Hien Tai
 
@@ -26,21 +27,29 @@ Muc tieu:
 - WebSocket: `/ws/slot-states`.
 - REST health: `/health`.
 - REST snapshot: `/api/v1/slots`.
+- Server bind: `0.0.0.0:8088`.
 
 ## 4. Thu Tu Chay
 
 1. Kiem tra `weights/best.pt`.
 2. Kiem tra 6 file ROI `configs/zones_cam*.json`.
-3. Khoi dong Vision Server:
+3. Kiem tra `configs/cameras.json` da map dung 6 IP camera site:
+   - cam1 -> `192.168.53.66`
+   - cam2 -> `192.168.53.65`
+   - cam3 -> `192.168.53.69`
+   - cam4 -> `192.168.53.67`
+   - cam5 -> `192.168.53.68`
+   - cam6 -> `192.168.53.70`
+4. Khoi dong Vision Server:
 
 ```bash
 python app/main_vision_server.py
 ```
 
-4. Mo Tablet va connect WebSocket.
-5. Xac nhan state `Unknown` ban dau xuat hien cho toan bo slot.
-6. Dat camera vao vung thuc te hoac replay source test.
-7. Xac nhan state chuyen sang `Empty` hoac `Occupied`.
+5. Mo Tablet va connect WebSocket.
+6. Xac nhan state `Unknown` ban dau xuat hien cho toan bo slot.
+7. Dat camera vao vung thuc te hoac replay source test.
+8. Xac nhan state chuyen sang `Empty` hoac `Occupied`.
 
 ## 5. Kiem Tra Nhanh Khi Server Da Len
 
@@ -76,7 +85,7 @@ Ky vong:
 Connect vao:
 
 ```text
-ws://VISION_SERVER_IP:2112/ws/slot-states
+ws://VISION_SERVER_IP:8088/ws/slot-states
 ```
 
 Ky vong:
@@ -90,6 +99,7 @@ Ky vong:
 - Toan `Unknown`: kiem tra model, ROI, nguong confidence, hoac source chua co frame.
 - WebSocket khong len: kiem tra port, firewall, va process dang chay.
 - State khong doi: kiem tra class name model co khop `target_object` khong.
+- Neu host bind loi: giu `configs/runtime.json` host `0.0.0.0` thay vi IP rieng cua may.
 
 ## 7. Quy Tac Van Hanh
 
@@ -97,4 +107,3 @@ Ky vong:
 - Khong coi `Unknown` la `Empty`.
 - Khong dung Vision Server neu chi mot camera loi, tru khi loi lan rong.
 - Khi doi model hoac ROI, phai chay lai health check va snapshot check.
-

@@ -73,7 +73,34 @@ class CameraReader:
                 "OPENCV_FFMPEG_CAPTURE_OPTIONS",
                 f"rtsp_transport;{self.ingest_config.rtsp_transport}|fflags;nobuffer|flags;low_delay|max_delay;0|reorder_queue_size;0",
             )
-        cap = cv2.VideoCapture(self.source, cv2.CAP_FFMPEG)
+        candidates = []
+        if self.source.lower().startswith("rtsp"):
+            candidates = [
+                ("ffmpeg", lambda: cv2.VideoCapture(self.source, cv2.CAP_FFMPEG)),
+                ("any", lambda: cv2.VideoCapture(self.source)),
+            ]
+        else:
+            candidates = [("default", lambda: cv2.VideoCapture(self.source))]
+
+        last_cap = None
+        for backend_name, factory in candidates:
+            cap = factory()
+            last_cap = cap
+            if cap.isOpened():
+                self._logger.info("[%s] Opened source with backend=%s", self.camera_id, backend_name)
+                self._apply_capture_settings(cap)
+                return cap
+            try:
+                cap.release()
+            except Exception:
+                pass
+
+        if last_cap is None:
+            last_cap = cv2.VideoCapture(self.source)
+        self._logger.warning("[%s] Failed to open source via all backends: %s", self.camera_id, self.source)
+        return last_cap
+
+    def _apply_capture_settings(self, cap) -> None:
         if hasattr(cap, "set"):
             try:
                 cap.set(cv2.CAP_PROP_BUFFERSIZE, self.buffer_size)
@@ -91,7 +118,6 @@ class CameraReader:
                 cap.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, self.read_timeout_msec)
             except Exception:
                 pass
-        return cap
 
     def _run(self) -> None:
         while self._running:
@@ -99,8 +125,9 @@ class CameraReader:
             if not cap.isOpened():
                 self._health = "offline"
                 self._logger.warning(
-                    "[%s] Cannot open source. Retry after %.1fs",
+                    "[%s] Cannot open source (%s). Retry after %.1fs",
                     self.camera_id,
+                    self.source,
                     self._reconnect_delay,
                 )
                 self.reconnect_count += 1
