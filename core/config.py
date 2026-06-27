@@ -26,9 +26,15 @@ def load_camera_configs(path: str | Path) -> list[CameraConfig]:
     for item in data:
         camera_type = _coerce_str(item.get("camera_type", "general_monitoring"))
         source_type = _coerce_str(item.get("source_type", "video")).lower()
+        raw_source_path = _expand_env(_coerce_str(item.get("source_path", "")))
         zone_config = _coerce_str(item.get("zone_config", ""))
         infer_every_n_frames = int(item.get("infer_every_n_frames", 1))
         enabled = bool(item.get("enabled", True))
+
+        if raw_source_path.lower().startswith(("rtsp://", "rtsps://", "http://", "https://")):
+            source_path = raw_source_path
+        else:
+            source_path = str(resolve_project_path(raw_source_path))
 
         configs.append(
             CameraConfig(
@@ -36,7 +42,7 @@ def load_camera_configs(path: str | Path) -> list[CameraConfig]:
                 camera_type=camera_type,
                 name=_coerce_str(item.get("name", "")),
                 source_type=source_type,
-                source_path=str(resolve_project_path(_expand_env(_coerce_str(item.get("source_path", ""))))),
+                source_path=source_path,
                 model_path=str(resolve_project_path(_expand_env(_coerce_str(item.get("model_path", ""))))),
                 zone_config=str(resolve_project_path(_expand_env(zone_config))),
                 infer_every_n_frames=infer_every_n_frames,
