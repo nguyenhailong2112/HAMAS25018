@@ -1,7 +1,13 @@
 from __future__ import annotations
 
+import sys
 import signal
 import threading
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.logger_config import get_logger
 from core.websocket_server import VisionHTTPServer, VisionRequestHandler
@@ -13,7 +19,19 @@ logger = get_logger(__name__)
 
 def main() -> None:
     runtime = VisionRuntime()
-    server = VisionHTTPServer((runtime.server_host, runtime.server_port), VisionRequestHandler, runtime)
+    try:
+        server = VisionHTTPServer((runtime.server_host, runtime.server_port), VisionRequestHandler, runtime)
+    except OSError as exc:
+        if getattr(exc, "winerror", None) == 10049 and runtime.server_host != "0.0.0.0":
+            logger.warning(
+                "Host %s cannot be bound on this machine, falling back to 0.0.0.0:%s",
+                runtime.server_host,
+                runtime.server_port,
+            )
+            runtime.server_host = "0.0.0.0"
+            server = VisionHTTPServer((runtime.server_host, runtime.server_port), VisionRequestHandler, runtime)
+        else:
+            raise
 
     def _shutdown(*_args):
         logger.info("Shutdown requested")

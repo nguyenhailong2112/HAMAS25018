@@ -1,10 +1,15 @@
+import sys
 import json
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-from core.path_utils import PROJECT_ROOT, resolve_project_path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from core.path_utils import resolve_project_path
 
 
 class RectROIDesigner:

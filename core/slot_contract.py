@@ -12,6 +12,7 @@ class SlotConfigView:
     camera_id: str
     zone_id: str
     name: str
+    node_name: str
 
 
 def format_timestamp(ts: float | None) -> str | None:
@@ -34,15 +35,12 @@ def build_slot_item(
     zone: ZoneConfig,
     state: ZoneState,
     *,
-    public_slot_id: str | None = None,
     camera_name: str | None = None,
     detect_ms: float | None = None,
     frame_id: int | None = None,
 ) -> dict[str, Any]:
-    slot_id = public_slot_id or zone.zone_id
     return {
-        "camera_id": camera_id,
-        "slot_id": slot_id,
+        "nodeName": zone.node_name,
         "state": state_to_public_label(state.state),
     }
 

@@ -4,6 +4,7 @@
   "zones": [
     {
       "zone_id": "A1",
+      "nodeName": "drop_kho_1",
       "target_object": "pallet",
       "polygon": [
         [
@@ -30,6 +31,7 @@
     },
     {
       "zone_id": "A2",
+      "nodeName": "drop_kho_2",
       "target_object": "pallet",
       "polygon": [
         [
@@ -56,6 +58,7 @@
     },
     {
       "zone_id": "A3",
+      "nodeName": "drop_kho_3",
       "target_object": "pallet",
       "polygon": [
         [
@@ -77,32 +80,6 @@
         [
           0.661111,
           0.355556
-        ]
-      ]
-    },
-    {
-      "zone_id": "A4",
-      "target_object": "pallet",
-      "polygon": [
-        [
-          0.780556,
-          0.360494
-        ],
-        [
-          0.816667,
-          0.360494
-        ],
-        [
-          0.816667,
-          0.417284
-        ],
-        [
-          0.780556,
-          0.417284
-        ],
-        [
-          0.780556,
-          0.360494
         ]
       ]
     }

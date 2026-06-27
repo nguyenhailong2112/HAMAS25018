@@ -319,6 +319,17 @@ class VisionRuntime:
             )
         return payload
 
+    def node_state_payload(self, node_name: str) -> dict[str, Any] | None:
+        item = self.state_store.get_node(node_name)
+        if item is None:
+            return None
+        return {
+            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
+            "nodeName": item.get("nodeName"),
+            "state": item.get("state", "Unknown"),
+            "slot": item,
+        }
+
     def build_health_payload(self) -> dict[str, Any]:
         snapshot = self.snapshot()
         return {
@@ -344,13 +355,14 @@ class VisionRuntime:
                 "health": "/health",
                 "server_info": "/api/v1/server-info",
                 "slots_snapshot": "/api/v1/slots",
+                "node_state": "/api/v1/node-state?nodeName=",
                 "cameras": "/api/v1/cameras",
                 "websocket_slots": self.websocket_path,
                 "monitor": "/monitor",
             },
             "slot_contract": {
                 "states": ["Empty", "Occupied", "Unknown"],
-                "required_fields": ["camera_id", "slot_id", "state"],
+                "required_fields": ["nodeName", "state"],
                 "unknown_rule": "Unknown must not be treated as Empty.",
             },
             "runtime": {

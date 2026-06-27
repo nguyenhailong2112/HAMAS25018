@@ -89,14 +89,9 @@ MONITOR_HTML = """<!doctype html>
       tsEl.textContent = payload.timestamp || "-";
 
       const cameraMeta = new Map((payload.camera_meta || []).map(meta => [String(meta.camera_id), meta]));
-      const groups = new Map();
-      slots.forEach(slot => {
-        const id = String(slot.camera_id);
-        if (!groups.has(id)) groups.set(id, []);
-        groups.get(id).push(slot);
-      });
+      const groups = new Map((payload.camera_layout || []).map(layout => [String(layout.camera_id), layout]));
       grid.innerHTML = "";
-      [...groups.entries()].sort().forEach(([cameraId, cameraSlots]) => {
+      [...groups.entries()].sort().forEach(([cameraId, layout]) => {
         const meta = cameraMeta.get(cameraId) || {};
         const detectMs = meta.detect_ms == null ? "-" : `${Number(meta.detect_ms).toFixed(1)} ms`;
         const frameId = meta.frame_id == null ? "-" : meta.frame_id;
@@ -104,10 +99,10 @@ MONITOR_HTML = """<!doctype html>
         card.className = "camera";
         card.innerHTML = `<h2>${cameraId}</h2><div class="cam-meta">health: ${meta.health || "-"} | frame: ${frameId} | detect: ${detectMs}</div><div class="slots"></div>`;
         const slotsEl = card.querySelector(".slots");
-        cameraSlots.sort((a,b) => String(a.slot_id).localeCompare(String(b.slot_id))).forEach(slot => {
+        (layout.slots || []).forEach(slot => {
           const el = document.createElement("div");
           el.className = "slot";
-          el.innerHTML = `<b>${slot.slot_id}</b><span class="state ${cls(slot.state)}">${slot.state}</span>`;
+          el.innerHTML = `<b>${slot.nodeName}</b><span class="state ${cls(slot.state)}">${slot.state}</span>`;
           slotsEl.appendChild(el);
         });
         grid.appendChild(card);
@@ -154,6 +149,9 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/v1/slots":
             self._handle_slots()
             return
+        if parsed.path == "/api/v1/node-state":
+            self._handle_node_state(parsed)
+            return
         if parsed.path == "/api/v1/cameras":
             self._handle_cameras()
             return
@@ -198,6 +196,20 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
     def _handle_slots(self) -> None:
         snapshot = self.server.runtime.snapshot()
         self._write_json(snapshot)
+
+    def _handle_node_state(self, parsed) -> None:
+        from urllib.parse import parse_qs
+
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        node_name = str(query.get("nodeName", [""])[0]).strip()
+        if not node_name:
+            self._write_error(HTTPStatus.BAD_REQUEST, "missing_nodeName", "Query parameter nodeName is required.")
+            return
+        payload = self.server.runtime.node_state_payload(node_name)
+        if payload is None:
+            self._write_error(HTTPStatus.NOT_FOUND, "node_not_found", f"Node not found: {node_name}")
+            return
+        self._write_json(payload)
 
     def _handle_cameras(self) -> None:
         payload = self.server.runtime.cameras_payload()

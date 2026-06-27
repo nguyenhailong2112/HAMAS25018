@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from threading import Lock
+from pathlib import Path
 
 from core.inference_runtime import YOLO_DEVICE
+from core.path_utils import resolve_project_path
 from ultralytics import YOLO
 
 from core.logger_config import get_logger
@@ -23,6 +25,7 @@ class ModelRegistry:
 
     @classmethod
     def get(cls, model_path: str) -> ModelBundle:
+        model_path = str(resolve_project_path(model_path))
         with cls._lock:
             bundle = cls._models.get(model_path)
             if bundle is not None:

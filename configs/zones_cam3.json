@@ -3,7 +3,8 @@
   "target_object": "pallet",
   "zones": [
     {
-      "zone_id": "A4",
+      "zone_id": "A3",
+      "nodeName": "drop_kho_5",
       "target_object": "pallet",
       "polygon": [
         [
@@ -29,7 +30,8 @@
       ]
     },
     {
-      "zone_id": "A5",
+      "zone_id": "A4",
+      "nodeName": "drop_kho_4",
       "target_object": "pallet",
       "polygon": [
         [

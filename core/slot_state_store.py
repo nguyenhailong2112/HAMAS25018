@@ -81,12 +81,13 @@ class SlotStateStore:
         with self._lock:
             items = sorted(
                 self._latest.values(),
-                key=lambda item: (str(item.get("camera_id", "")), str(item.get("slot_id", ""))),
+                key=lambda item: str(item.get("nodeName", "")),
             )
             snapshot = build_snapshot_payload(items, timestamp)
             snapshot["camera_count"] = len(self._camera_meta)
             snapshot["online_camera_count"] = sum(1 for meta in self._camera_meta.values() if meta.get("health") == "online")
             snapshot["camera_meta"] = list(self._camera_meta.values())
+            snapshot["camera_layout"] = self._build_camera_layout()
             return snapshot
 
     def get_camera_snapshot(self, camera_id: str, timestamp: float) -> dict[str, Any]:
@@ -96,15 +97,43 @@ class SlotStateStore:
                 for key, payload in self._latest.items()
                 if key.startswith(f"{camera_id}:")
             ]
-            items.sort(key=lambda item: str(item.get("slot_id", "")))
+            items.sort(key=lambda item: str(item.get("nodeName", "")))
             snapshot = build_snapshot_payload(items, timestamp)
             snapshot["camera"] = self._camera_meta.get(camera_id, {"camera_id": camera_id})
             return snapshot
+
+    def _build_camera_layout(self) -> list[dict[str, Any]]:
+        layout: list[dict[str, Any]] = []
+        for camera_id, bundle in self._camera_bundles.items():
+            slots = []
+            for zone_cfg in bundle.zone_configs:
+                item = self._latest.get(self._slot_key(camera_id, zone_cfg.zone_id))
+                if item is None:
+                    item = {"nodeName": zone_cfg.node_name, "state": "Unknown"}
+                slots.append(dict(item))
+            layout.append(
+                {
+                    "camera_id": camera_id,
+                    "camera_name": bundle.camera_name,
+                    "slots": sorted(slots, key=lambda item: str(item.get("nodeName", ""))),
+                }
+            )
+        return layout
 
     def get_slot(self, camera_id: str, slot_id: str, timestamp: float) -> dict[str, Any] | None:
         with self._lock:
             item = self._latest.get(self._slot_key(camera_id, slot_id))
             return dict(item) if item is not None else None
+
+    def get_node(self, node_name: str) -> dict[str, Any] | None:
+        normalized = str(node_name).strip()
+        if not normalized:
+            return None
+        with self._lock:
+            for item in self._latest.values():
+                if str(item.get("nodeName", "")).strip() == normalized:
+                    return dict(item)
+        return None
 
     @staticmethod
     def _slot_key(camera_id: str, slot_id: str) -> str:
