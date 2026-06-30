@@ -19,7 +19,7 @@
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam2.json",
     "infer_every_n_frames": 2,
-    "enabled": true
+    "enabled": false
   },
   {
     "camera_id": "cam3",
