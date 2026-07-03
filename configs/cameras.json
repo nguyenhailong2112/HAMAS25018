@@ -1,6 +1,6 @@
 [
   {
-    "camera_id": "cam1",
+    "camera_id": "1",
     "camera_type": "slot_pallet",
     "name": "Camera 1",
     "source_type": "rtsp",
@@ -11,7 +11,7 @@
     "enabled": true
   },
   {
-    "camera_id": "cam2",
+    "camera_id": "2",
     "camera_type": "slot_pallet",
     "name": "Camera 2",
     "source_type": "rtsp",
@@ -19,10 +19,10 @@
     "model_path": "weights/best.pt",
     "zone_config": "configs/zones_cam2.json",
     "infer_every_n_frames": 2,
-    "enabled": false
+    "enabled": true
   },
   {
-    "camera_id": "cam3",
+    "camera_id": "3",
     "camera_type": "slot_pallet",
     "name": "Camera 3",
     "source_type": "rtsp",
@@ -33,7 +33,7 @@
     "enabled": true
   },
   {
-    "camera_id": "cam4",
+    "camera_id": "4",
     "camera_type": "slot_pallet",
     "name": "Camera 4",
     "source_type": "rtsp",
@@ -44,7 +44,7 @@
     "enabled": true
   },
   {
-    "camera_id": "cam5",
+    "camera_id": "5",
     "camera_type": "slot_trolley",
     "name": "Camera 5",
     "source_type": "rtsp",
@@ -55,7 +55,7 @@
     "enabled": true
   },
   {
-    "camera_id": "cam6",
+    "camera_id": "6",
     "camera_type": "slot_trolley",
     "name": "Camera 6",
     "source_type": "rtsp",

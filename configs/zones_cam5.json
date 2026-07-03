@@ -3,8 +3,8 @@
   "target_object": "trolley",
   "zones": [
     {
-      "zone_id": "A1",
-      "nodeName": "",
+      "zone_id": "15",
+      "nodeName": "drop_pac_2",
       "target_object": "trolley",
       "polygon": [
         [
@@ -30,8 +30,8 @@
       ]
     },
     {
-      "zone_id": "A2",
-      "nodeName": "",
+      "zone_id": "14",
+      "nodeName": "drop_pac_1",
       "target_object": "trolley",
       "polygon": [
         [

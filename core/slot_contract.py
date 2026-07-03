@@ -24,13 +24,12 @@ def format_timestamp(ts: float | None) -> str | None:
 def state_to_public_label(state: str) -> str:
     normalized = (state or "").strip().lower()
     if normalized == "occupied":
-        return "Occupied"
+        return "Car Full"
     if normalized == "empty":
         return "Empty"
     return "Unknown"
 
-
-def build_slot_item(
+def build_public_slot_item(
     camera_id: str,
     zone: ZoneConfig,
     state: ZoneState,
@@ -43,6 +42,26 @@ def build_slot_item(
         "nodeName": zone.node_name,
         "state": state_to_public_label(state.state),
     }
+
+
+def build_raw_slot_item(
+    camera_id: str,
+    slot_id: str,
+    state: ZoneState,
+    *,
+    node_name: str | None = None,
+    camera_name: str | None = None,
+    detect_ms: float | None = None,
+    frame_id: int | None = None,
+) -> dict[str, Any]:
+    payload = {
+        "camera_id": camera_id,
+        "slot_id": slot_id,
+        "state": state_to_public_label(state.state),
+    }
+    if node_name:
+        payload["nodeName"] = node_name
+    return payload
 
 
 def build_snapshot_payload(items: list[dict[str, Any]], timestamp: float) -> dict[str, Any]:

@@ -1,0 +1,60 @@
+{
+  "source": "/home/pidvn/PyCharmMiscProject/HAMAS25018/dataTest/imageTest/Cam2/img.jpg",
+  "target_object": "pallet",
+  "zones": [
+    {
+      "zone_id": "4",
+      "nodeName": "drop_kho_4",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.620833,
+          0.816049
+        ],
+        [
+          0.665972,
+          0.816049
+        ],
+        [
+          0.665972,
+          0.890123
+        ],
+        [
+          0.620833,
+          0.890123
+        ],
+        [
+          0.620833,
+          0.816049
+        ]
+      ]
+    },
+    {
+      "zone_id": "5",
+      "nodeName": "drop_kho_5",
+      "target_object": "pallet",
+      "polygon": [
+        [
+          0.477778,
+          0.671605
+        ],
+        [
+          0.516667,
+          0.671605
+        ],
+        [
+          0.516667,
+          0.745679
+        ],
+        [
+          0.477778,
+          0.745679
+        ],
+        [
+          0.477778,
+          0.671605
+        ]
+      ]
+    }
+  ]
+}

@@ -194,13 +194,13 @@ class VisionRuntime:
         try:
             while not self.should_stop():
                 now_ts = time.time()
-                current_snapshot = self.snapshot(now_ts)
+                current_snapshot = self.raw_snapshot(now_ts)
                 updated_any = False
                 for runtime in self._select_due_runtimes(now_ts):
                     updated_any |= self._process_camera(runtime, now_ts)
 
                 if updated_any or (now_ts - self._last_export_ts) >= self.export_interval_sec:
-                    current_snapshot = self.snapshot(now_ts)
+                    current_snapshot = self.raw_snapshot(now_ts)
                     self._export_snapshot(current_snapshot)
                     self._last_export_ts = now_ts
 
@@ -301,6 +301,9 @@ class VisionRuntime:
     def snapshot(self, timestamp: float | None = None) -> dict[str, Any]:
         return self.state_store.get_snapshot(timestamp or time.time())
 
+    def raw_snapshot(self, timestamp: float | None = None) -> dict[str, Any]:
+        return self.state_store.get_raw_snapshot(timestamp or time.time())
+
     def cameras_payload(self) -> dict[str, Any]:
         payload = {
             "timestamp": build_snapshot_payload([], time.time())["timestamp"],
@@ -330,6 +333,18 @@ class VisionRuntime:
             "slot": item,
         }
 
+    def raw_node_state_payload(self, node_name: str) -> dict[str, Any] | None:
+        item = self.state_store.get_node(node_name)
+        if item is None:
+            return None
+        return {
+            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
+            "nodeName": item.get("nodeName"),
+            "camera_id": item.get("camera_id"),
+            "slot_id": item.get("slot_id"),
+            "state": item.get("state", "Unknown"),
+        }
+
     def build_health_payload(self) -> dict[str, Any]:
         snapshot = self.snapshot()
         return {
@@ -356,6 +371,7 @@ class VisionRuntime:
                 "server_info": "/api/v1/server-info",
                 "slots_snapshot": "/api/v1/slots",
                 "node_state": "/api/v1/node-state?nodeName=",
+                "node_state_raw": "/api/v1/node-state-raw?nodeName=",
                 "cameras": "/api/v1/cameras",
                 "websocket_slots": self.websocket_path,
                 "monitor": "/monitor",
@@ -429,6 +445,11 @@ class VisionRuntime:
 
     def send_current_snapshot_to_client(self, conn) -> None:
         snapshot = self.snapshot()
+        frame = self._encode_ws_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+        conn.sendall(frame)
+
+    def send_current_raw_snapshot_to_client(self, conn) -> None:
+        snapshot = self.raw_snapshot()
         frame = self._encode_ws_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
         conn.sendall(frame)
 

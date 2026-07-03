@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from threading import Lock
 from typing import Any
 
-from core.slot_contract import build_snapshot_payload, build_slot_item
+from core.slot_contract import build_raw_slot_item, build_snapshot_payload
 from core.types import ZoneConfig, ZoneState
 
 
@@ -42,7 +42,12 @@ class SlotStateStore:
                     health="unknown",
                 )
                 key = self._slot_key(bundle.camera_id, zone_cfg.zone_id)
-                self._latest[key] = build_slot_item(bundle.camera_id, zone_cfg, unknown_state)
+                self._latest[key] = {
+                    "camera_id": bundle.camera_id,
+                    "slot_id": zone_cfg.zone_id,
+                    "nodeName": zone_cfg.node_name,
+                    "state": "Unknown",
+                }
 
     def update_camera_state(
         self,
@@ -68,10 +73,11 @@ class SlotStateStore:
             }
             for zone_cfg, state in zip(zone_configs, zone_states):
                 key = self._slot_key(camera_id, zone_cfg.zone_id)
-                self._latest[key] = build_slot_item(
+                self._latest[key] = build_raw_slot_item(
                     camera_id,
-                    zone_cfg,
+                    zone_cfg.zone_id,
                     state,
+                    node_name=zone_cfg.node_name,
                     camera_name=camera_name,
                     detect_ms=detect_ms,
                     frame_id=frame_id,
@@ -80,7 +86,7 @@ class SlotStateStore:
     def get_snapshot(self, timestamp: float) -> dict[str, Any]:
         with self._lock:
             items = sorted(
-                self._latest.values(),
+                [{"nodeName": item.get("nodeName", ""), "state": item.get("state", "Unknown")} for item in self._latest.values()],
                 key=lambda item: str(item.get("nodeName", "")),
             )
             snapshot = build_snapshot_payload(items, timestamp)
@@ -88,6 +94,25 @@ class SlotStateStore:
             snapshot["online_camera_count"] = sum(1 for meta in self._camera_meta.values() if meta.get("health") == "online")
             snapshot["camera_meta"] = list(self._camera_meta.values())
             snapshot["camera_layout"] = self._build_camera_layout()
+            return snapshot
+
+    def get_raw_snapshot(self, timestamp: float) -> dict[str, Any]:
+        with self._lock:
+            items = sorted(
+                [
+                    {
+                        "camera_id": item.get("camera_id"),
+                        "slot_id": item.get("slot_id"),
+                        "nodeName": item.get("nodeName"),
+                        "state": item.get("state", "Unknown"),
+                    }
+                    for item in self._latest.values()
+                ],
+                key=lambda item: (str(item.get("camera_id", "")), str(item.get("slot_id", ""))),
+            )
+            snapshot = build_snapshot_payload(items, timestamp)
+            snapshot["camera_count"] = len(self._camera_meta)
+            snapshot["online_camera_count"] = sum(1 for meta in self._camera_meta.values() if meta.get("health") == "online")
             return snapshot
 
     def get_camera_snapshot(self, camera_id: str, timestamp: float) -> dict[str, Any]:
@@ -109,7 +134,12 @@ class SlotStateStore:
             for zone_cfg in bundle.zone_configs:
                 item = self._latest.get(self._slot_key(camera_id, zone_cfg.zone_id))
                 if item is None:
-                    item = {"nodeName": zone_cfg.node_name, "state": "Unknown"}
+                    item = {
+                        "camera_id": camera_id,
+                        "slot_id": zone_cfg.zone_id,
+                        "nodeName": zone_cfg.node_name,
+                        "state": "Unknown",
+                    }
                 slots.append(dict(item))
             layout.append(
                 {

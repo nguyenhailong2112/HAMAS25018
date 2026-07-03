@@ -74,6 +74,12 @@ Single node lookup:
 GET /api/v1/node-state?nodeName=predock_oil_4
 ```
 
+Raw node lookup:
+
+```text
+GET /api/v1/node-state-raw?nodeName=predock_oil_4
+```
+
 Slot snapshot:
 
 ```text

@@ -152,6 +152,9 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/v1/node-state":
             self._handle_node_state(parsed)
             return
+        if parsed.path == "/api/v1/node-state-raw":
+            self._handle_node_state_raw(parsed)
+            return
         if parsed.path == "/api/v1/cameras":
             self._handle_cameras()
             return
@@ -194,7 +197,7 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _handle_slots(self) -> None:
-        snapshot = self.server.runtime.snapshot()
+        snapshot = self.server.runtime.raw_snapshot()
         self._write_json(snapshot)
 
     def _handle_node_state(self, parsed) -> None:
@@ -206,6 +209,20 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
             self._write_error(HTTPStatus.BAD_REQUEST, "missing_nodeName", "Query parameter nodeName is required.")
             return
         payload = self.server.runtime.node_state_payload(node_name)
+        if payload is None:
+            self._write_error(HTTPStatus.NOT_FOUND, "node_not_found", f"Node not found: {node_name}")
+            return
+        self._write_json(payload)
+
+    def _handle_node_state_raw(self, parsed) -> None:
+        from urllib.parse import parse_qs
+
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        node_name = str(query.get("nodeName", [""])[0]).strip()
+        if not node_name:
+            self._write_error(HTTPStatus.BAD_REQUEST, "missing_nodeName", "Query parameter nodeName is required.")
+            return
+        payload = self.server.runtime.raw_node_state_payload(node_name)
         if payload is None:
             self._write_error(HTTPStatus.NOT_FOUND, "node_not_found", f"Node not found: {node_name}")
             return
@@ -231,7 +248,7 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         conn.settimeout(1.0)
         self.server.runtime.register_ws_client(conn)
         try:
-            self.server.runtime.send_current_snapshot_to_client(conn)
+            self.server.runtime.send_current_raw_snapshot_to_client(conn)
             self.server.runtime.hold_ws_connection(conn)
         finally:
             self.server.runtime.unregister_ws_client(conn)
