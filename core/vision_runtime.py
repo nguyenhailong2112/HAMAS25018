@@ -6,6 +6,7 @@ import socket
 import threading
 import time
 from dataclasses import dataclass
+from collections import deque
 from pathlib import Path
 from typing import Any
 
@@ -20,10 +21,10 @@ from core.config import (
     validate_ingest_config,
     validate_rule_config,
 )
-from core.file_utils import append_jsonl_rotating, write_json_atomic
+from core.file_utils import append_jsonl_rotating, tail_text_lines, write_json_atomic
 from core.frame_store import FrameStore
 from core.logger_config import get_logger
-from core.path_utils import PROJECT_ROOT, ensure_exists, resolve_project_path
+from core.path_utils import PROJECT_ROOT, ensure_exists, resolve_project_path, user_config_dir
 from core.slot_contract import build_snapshot_payload
 from core.slot_state_store import CameraSlotBundle, SlotStateStore
 from core.types import Detection, DetectionResult
@@ -107,12 +108,17 @@ class VisionRuntime:
         self.state_store = SlotStateStore([])
         self._ws_client_lock = threading.Lock()
         self._ws_clients: set[Any] = set()
+        self._event_ws_client_lock = threading.Lock()
+        self._event_ws_clients: set[Any] = set()
         self._stop_event = threading.Event()
         self._runtime_lock = threading.Lock()
         self._last_export_ts = 0.0
         self._last_ws_broadcast_ts = 0.0
         self._log_state_path = self.history_dir / "slot_state_changes.jsonl"
+        self._event_log_path = self.history_dir / "vision_events.jsonl"
+        self._recent_events: deque[dict[str, Any]] = deque(maxlen=300)
         self._build_camera_runtimes()
+        self._record_event("server_start", {"camera_count": len(self.camera_configs)})
 
     def _build_camera_runtimes(self) -> None:
         bundles: list[CameraSlotBundle] = []
@@ -174,6 +180,7 @@ class VisionRuntime:
         self._stop_event.clear()
         for runtime in self.camera_runtimes:
             logger.info("Started camera runtime: %s", runtime.camera_id)
+        self._record_event("runtime_start", {"camera_count": len(self.camera_runtimes)})
 
     def stop(self) -> None:
         self._stop_event.set()
@@ -182,6 +189,7 @@ class VisionRuntime:
                 runtime.reader.stop()
             except Exception:
                 logger.exception("Failed to stop reader for %s", runtime.camera_id)
+        self._record_event("runtime_stop", {"camera_count": len(self.camera_runtimes)})
 
     def should_stop(self) -> bool:
         return self._stop_event.is_set()
@@ -241,6 +249,11 @@ class VisionRuntime:
             result = None
         detect_ms = (time.perf_counter() - t0) * 1000.0
         if result is None:
+            self._record_event(
+                "inference_failed",
+                {"camera_id": runtime.camera_id, "frame_id": live_frame.frame_id, "source": runtime.source_path},
+                level="warning",
+            )
             result = DetectionResult(
                 camera_id=runtime.camera_id,
                 frame_id=live_frame.frame_id,
@@ -276,6 +289,17 @@ class VisionRuntime:
         # State changes are persisted as a light append-only audit trail for future review.
         if changed_states:
             for state in changed_states:
+                self._record_event(
+                    "slot_state_changed",
+                    {
+                        "camera_id": state.camera_id,
+                        "zone_id": state.zone_id,
+                        "nodeName": next((zone.node_name for zone in runtime.zone_configs if zone.zone_id == state.zone_id), state.zone_id),
+                        "state": state.state,
+                        "score": round(float(state.score), 4),
+                        "timestamp": state.timestamp,
+                    },
+                )
                 append_jsonl_rotating(
                     self._log_state_path,
                     {
@@ -345,6 +369,43 @@ class VisionRuntime:
             "state": item.get("state", "Unknown"),
         }
 
+    def recent_events_payload(self, limit: int = 100) -> dict[str, Any]:
+        limit = max(1, min(int(limit), 300))
+        events = list(self._recent_events)[-limit:]
+        return {
+            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
+            "count": len(events),
+            "events": events,
+        }
+
+    def recent_logs_payload(self, limit: int = 100) -> dict[str, Any]:
+        limit = max(1, min(int(limit), 300))
+        log_file = user_config_dir() / "logs" / "app.log"
+        lines = tail_text_lines(log_file, limit=limit)
+        return {
+            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
+            "count": len(lines),
+            "log_file": str(log_file),
+            "lines": lines,
+        }
+
+    def _record_event(self, event_type: str, data: dict[str, Any], *, level: str = "info") -> None:
+        payload = {
+            "timestamp": time.time(),
+            "iso_timestamp": build_snapshot_payload([], time.time())["timestamp"],
+            "event_type": event_type,
+            "level": level,
+            "data": data,
+        }
+        self._recent_events.append(payload)
+        append_jsonl_rotating(
+            self._event_log_path,
+            payload,
+            max_bytes=10 * 1024 * 1024,
+            backup_count=7,
+        )
+        self.broadcast_event(payload)
+
     def build_health_payload(self) -> dict[str, Any]:
         snapshot = self.snapshot()
         return {
@@ -372,8 +433,11 @@ class VisionRuntime:
                 "slots_snapshot": "/api/v1/slots",
                 "node_state": "/api/v1/node-state?nodeName=",
                 "node_state_raw": "/api/v1/node-state-raw?nodeName=",
+                "events": "/api/v1/events",
+                "logs": "/api/v1/logs",
                 "cameras": "/api/v1/cameras",
                 "websocket_slots": self.websocket_path,
+                "websocket_events": "/ws/events",
                 "monitor": "/monitor",
             },
             "slot_contract": {
@@ -425,6 +489,14 @@ class VisionRuntime:
         with self._ws_client_lock:
             self._ws_clients.discard(conn)
 
+    def register_event_ws_client(self, conn) -> None:
+        with self._event_ws_client_lock:
+            self._event_ws_clients.add(conn)
+
+    def unregister_event_ws_client(self, conn) -> None:
+        with self._event_ws_client_lock:
+            self._event_ws_clients.discard(conn)
+
     def broadcast(self, snapshot: dict[str, Any]) -> None:
         message = json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         frame = self._encode_ws_text(message)
@@ -452,6 +524,29 @@ class VisionRuntime:
         snapshot = self.raw_snapshot()
         frame = self._encode_ws_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
         conn.sendall(frame)
+
+    def send_recent_events_to_client(self, conn, limit: int = 50) -> None:
+        payload = self.recent_events_payload(limit=limit)
+        frame = self._encode_ws_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+        conn.sendall(frame)
+
+    def broadcast_event(self, payload: dict[str, Any]) -> None:
+        message = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        frame = self._encode_ws_text(message)
+        dead = []
+        with self._event_ws_client_lock:
+            clients = list(self._event_ws_clients)
+        for conn in clients:
+            try:
+                conn.sendall(frame)
+            except OSError:
+                dead.append(conn)
+        for conn in dead:
+            self.unregister_event_ws_client(conn)
+            try:
+                conn.close()
+            except OSError:
+                pass
 
     def hold_ws_connection(self, conn) -> None:
         while not self.should_stop():

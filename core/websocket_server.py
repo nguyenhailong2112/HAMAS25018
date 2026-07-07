@@ -158,8 +158,17 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/v1/cameras":
             self._handle_cameras()
             return
+        if parsed.path == "/api/v1/events":
+            self._handle_events()
+            return
+        if parsed.path == "/api/v1/logs":
+            self._handle_logs()
+            return
         if parsed.path == "/ws/slot-states" and self.headers.get("Upgrade", "").lower() == "websocket":
             self._handle_websocket()
+            return
+        if parsed.path == "/ws/events" and self.headers.get("Upgrade", "").lower() == "websocket":
+            self._handle_events_websocket()
             return
         self._write_error(HTTPStatus.NOT_FOUND, "not_found", "Endpoint not found.")
 
@@ -232,6 +241,16 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         payload = self.server.runtime.cameras_payload()
         self._write_json(payload)
 
+    def _handle_events(self) -> None:
+        limit = self._read_limit_default(50)
+        payload = self.server.runtime.recent_events_payload(limit=limit)
+        self._write_json(payload)
+
+    def _handle_logs(self) -> None:
+        limit = self._read_limit_default(100)
+        payload = self.server.runtime.recent_logs_payload(limit=limit)
+        self._write_json(payload)
+
     def _handle_websocket(self) -> None:
         key = self.headers.get("Sec-WebSocket-Key")
         if not key:
@@ -252,6 +271,27 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
             self.server.runtime.hold_ws_connection(conn)
         finally:
             self.server.runtime.unregister_ws_client(conn)
+
+    def _handle_events_websocket(self) -> None:
+        key = self.headers.get("Sec-WebSocket-Key")
+        if not key:
+            self._write_error(HTTPStatus.BAD_REQUEST, "missing_websocket_key", "Missing Sec-WebSocket-Key.")
+            return
+        accept = _accept_key(key)
+        self.send_response(HTTPStatus.SWITCHING_PROTOCOLS)
+        self.send_header("Upgrade", "websocket")
+        self.send_header("Connection", "Upgrade")
+        self.send_header("Sec-WebSocket-Accept", accept)
+        self.end_headers()
+
+        conn = self.connection
+        conn.settimeout(1.0)
+        self.server.runtime.register_event_ws_client(conn)
+        try:
+            self.server.runtime.send_recent_events_to_client(conn)
+            self.server.runtime.hold_ws_connection(conn)
+        finally:
+            self.server.runtime.unregister_event_ws_client(conn)
 
     def _write_json(self, payload: dict[str, Any]) -> None:
         body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
@@ -275,6 +315,16 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def _read_limit_default(self, default: int) -> int:
+        from urllib.parse import parse_qs
+
+        query = parse_qs(urlparse(self.path).query, keep_blank_values=True)
+        raw = query.get("limit", [str(default)])[0]
+        try:
+            return max(1, min(int(raw), 300))
+        except (TypeError, ValueError):
+            return default
 
 
 class VisionHTTPServer(ThreadingHTTPServer):

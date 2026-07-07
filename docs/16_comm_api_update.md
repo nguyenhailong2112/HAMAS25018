@@ -12,6 +12,12 @@ Vision chi lam nhiem vu:
 
 Vision khong xu ly business rule task.
 
+For monitoring and integration debug, the Vision server also exposes:
+
+- `GET /api/v1/events`
+- `GET /api/v1/logs`
+- `ws://VISION_SERVER_IP:8088/ws/events`
+
 ## 2. WebSocket
 
 Endpoint:
@@ -90,15 +96,44 @@ Response:
 }
 ```
 
-## 5. Meaning Of State
+## 5. Events And Logs
+
+Recent operational events:
+
+```text
+GET /api/v1/events?limit=50
+```
+
+Recent Vision logs:
+
+```text
+GET /api/v1/logs?limit=100
+```
+
+Realtime events stream:
+
+```text
+ws://VISION_SERVER_IP:8088/ws/events
+```
+
+Use cases:
+
+- Camera connect/disconnect.
+- Inference failure.
+- Slot state change.
+- Server start/stop.
+- Integration troubleshooting.
+
+## 6. Meaning Of State
 
 - `Empty`: vi tri trong.
 - `Car Full`: vi tri co hang.
 - `Unknown`: chua chac chan hoac du lieu stale.
 
-## 6. Rule For Integration
+## 7. Rule For Integration
 
 - Tablet co the dung `node-state` de hien thi theo node.
 - FMS hoac he thong can format cu co the dung `node-state-raw`.
 - WebSocket la kenh push realtime chinh.
 - REST la kenh fallback va debug.
+- `events` va `logs` la kenh xem tinh trang van hanh va callback-debug.

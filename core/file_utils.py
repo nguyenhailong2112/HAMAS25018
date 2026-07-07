@@ -75,3 +75,11 @@ def append_jsonl_rotating(
     with path.open("a", encoding=encoding) as f:
         f.write(json.dumps(payload, ensure_ascii=False) + "\n")
     return path
+
+
+def tail_text_lines(path: Path, limit: int = 100, encoding: str = "utf-8") -> list[str]:
+    if limit <= 0 or not path.exists():
+        return []
+    with path.open("r", encoding=encoding, errors="replace") as f:
+        lines = f.readlines()
+    return [line.rstrip("\n") for line in lines[-limit:]]
