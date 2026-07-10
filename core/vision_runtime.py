@@ -441,7 +441,7 @@ class VisionRuntime:
                 "monitor": "/monitor",
             },
             "slot_contract": {
-                "states": ["Empty", "Occupied", "Unknown"],
+                "states": ["Empty", "Car Full", "Unknown"],
                 "required_fields": ["nodeName", "state"],
                 "unknown_rule": "Unknown must not be treated as Empty.",
             },

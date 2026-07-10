@@ -18,7 +18,7 @@ For monitoring and integration debug, the Vision server also exposes:
 - `GET /api/v1/logs`
 - `ws://VISION_SERVER_IP:8088/ws/events`
 
-## 2. WebSocket
+## 2. Realtime Slot Stream
 
 Endpoint:
 
@@ -34,25 +34,25 @@ Payload push:
   "total_slots": 3,
   "slots": [
     {
-      "camera_id": 1,
-      "slot_id": 1,
+      "camera_id": "cam1",
+      "slot_id": "A1",
       "state": "Car Full"
     },
     {
-      "camera_id": 1,
-      "slot_id": 2,
+      "camera_id": "cam1",
+      "slot_id": "A2",
       "state": "Empty"
     },
     {
-      "camera_id": 2,
-      "slot_id": 1,
+      "camera_id": "cam2",
+      "slot_id": "A1",
       "state": "Unknown"
     }
   ]
 }
 ```
 
-## 3. API Node State
+## 3. Node APIs
 
 API cu giu nguyen:
 
@@ -68,17 +68,15 @@ Response:
   "nodeName": "drop_kho_4",
   "state": "Car Full",
   "slot": {
-    "camera_id": 1,
-    "slot_id": 1,
+    "camera_id": "cam4",
+    "slot_id": "A4",
     "nodeName": "drop_kho_4",
     "state": "Car Full"
   }
 }
 ```
 
-## 4. API Raw Node State
-
-API moi cho process cu:
+API raw theo format cu:
 
 ```text
 GET /api/v1/node-state-raw?nodeName=drop_kho_4
@@ -96,7 +94,7 @@ Response:
 }
 ```
 
-## 5. Events And Logs
+## 4. Events And Logs
 
 Recent operational events:
 
@@ -123,6 +121,20 @@ Use cases:
 - Slot state change.
 - Server start/stop.
 - Integration troubleshooting.
+
+## 5. Monitor UI
+
+```text
+http://VISION_SERVER_IP:8088/monitor
+```
+
+Monitor hien:
+
+- Tong slots.
+- So `Empty`.
+- So `Car Full`.
+- So `Unknown`.
+- Tung camera + state layout theo `nodeName`.
 
 ## 6. Meaning Of State
 

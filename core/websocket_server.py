@@ -60,7 +60,7 @@ MONITOR_HTML = """<!doctype html>
     <section class="summary">
       <div class="tile">Total slots<strong id="total">0</strong></div>
       <div class="tile">Empty<strong id="empty">0</strong></div>
-      <div class="tile">Occupied<strong id="full">0</strong></div>
+      <div class="tile">Car Full<strong id="full">0</strong></div>
       <div class="tile">Unknown<strong id="unknown">0</strong></div>
     </section>
     <section class="grid" id="grid"></section>
@@ -74,17 +74,17 @@ MONITOR_HTML = """<!doctype html>
 
     function cls(state) {
       if (state === "Empty") return "empty";
-      if (state === "Occupied") return "full";
+      if (state === "Car Full") return "full";
       return "unknown";
     }
 
     function render(payload) {
       const slots = payload.slots || [];
-      const counts = { Empty: 0, "Occupied": 0, Unknown: 0 };
+      const counts = { Empty: 0, "Car Full": 0, Unknown: 0 };
       slots.forEach(s => counts[s.state] = (counts[s.state] || 0) + 1);
       document.getElementById("total").textContent = slots.length;
       document.getElementById("empty").textContent = counts.Empty || 0;
-      document.getElementById("full").textContent = counts["Occupied"] || 0;
+      document.getElementById("full").textContent = counts["Car Full"] || 0;
       document.getElementById("unknown").textContent = counts.Unknown || 0;
       tsEl.textContent = payload.timestamp || "-";
 
