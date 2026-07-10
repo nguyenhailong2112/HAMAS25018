@@ -113,6 +113,8 @@ class SlotStateStore:
             snapshot = build_snapshot_payload(items, timestamp)
             snapshot["camera_count"] = len(self._camera_meta)
             snapshot["online_camera_count"] = sum(1 for meta in self._camera_meta.values() if meta.get("health") == "online")
+            snapshot["camera_meta"] = list(self._camera_meta.values())
+            snapshot["camera_layout"] = self._build_camera_layout()
             return snapshot
 
     def get_camera_snapshot(self, camera_id: str, timestamp: float) -> dict[str, Any]:
