@@ -14,8 +14,8 @@ Vision Server for CCTV slot monitoring.
 
 ## Docs
 
-- `docs/16_comn_api_update.md`
-- `docs/17_operational_guide.md`
+- `docs/1_comn_api_update.md`
+- `docs/2_operational_guide.md`
 
 ## Run
 
