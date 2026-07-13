@@ -71,6 +71,7 @@ MONITOR_HTML = """<!doctype html>
     const tsEl = document.getElementById("timestamp");
     const endpoint = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/slot-states`;
     document.getElementById("endpoint").textContent = endpoint;
+    let cameraNames = new Map();
 
     function cls(state) {
       if (state === "Empty") return "empty";
@@ -88,25 +89,36 @@ MONITOR_HTML = """<!doctype html>
       document.getElementById("unknown").textContent = counts.Unknown || 0;
       tsEl.textContent = payload.timestamp || "-";
 
-      const cameraMeta = new Map((payload.camera_meta || []).map(meta => [String(meta.camera_id), meta]));
-      const groups = new Map((payload.camera_layout || []).map(layout => [String(layout.camera_id), layout]));
+      const groups = new Map();
+      slots.forEach(slot => {
+        const key = String(slot.camera_id);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(slot);
+      });
       grid.innerHTML = "";
       [...groups.entries()].sort().forEach(([cameraId, layout]) => {
-        const meta = cameraMeta.get(cameraId) || {};
-        const detectMs = meta.detect_ms == null ? "-" : `${Number(meta.detect_ms).toFixed(1)} ms`;
-        const frameId = meta.frame_id == null ? "-" : meta.frame_id;
+        const cameraName = cameraNames.get(cameraId) || cameraId;
         const card = document.createElement("article");
         card.className = "camera";
-        card.innerHTML = `<h2>${cameraId}</h2><div class="cam-meta">health: ${meta.health || "-"} | frame: ${frameId} | detect: ${detectMs}</div><div class="slots"></div>`;
+        card.innerHTML = `<h2>${cameraName}</h2><div class="cam-meta">camera_id: ${cameraId}</div><div class="slots"></div>`;
         const slotsEl = card.querySelector(".slots");
-        (layout.slots || []).forEach(slot => {
+        layout.forEach(slot => {
           const el = document.createElement("div");
           el.className = "slot";
-          el.innerHTML = `<b>${slot.nodeName}</b><span class="state ${cls(slot.state)}">${slot.state}</span>`;
+          el.innerHTML = `<b>${slot.slot_id}</b><span class="state ${cls(slot.state)}">${slot.state}</span>`;
           slotsEl.appendChild(el);
         });
         grid.appendChild(card);
       });
+    }
+
+    function loadCameraNames() {
+      fetch("/api/v1/cameras")
+        .then(resp => resp.json())
+        .then(payload => {
+          cameraNames = new Map((payload.cameras || []).map(cam => [String(cam.camera_id), cam.camera_name || cam.camera_id]));
+        })
+        .catch(() => {});
     }
 
     function connect() {
@@ -116,6 +128,7 @@ MONITOR_HTML = """<!doctype html>
       ws.onclose = () => { statusEl.textContent = "Disconnected, retrying..."; setTimeout(connect, 1500); };
       ws.onerror = () => { statusEl.textContent = "Connection error"; ws.close(); };
     }
+    loadCameraNames();
     connect();
   </script>
 </body>
@@ -149,11 +162,8 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/v1/slots":
             self._handle_slots()
             return
-        if parsed.path == "/api/v1/node-state":
-            self._handle_node_state(parsed)
-            return
-        if parsed.path == "/api/v1/node-state-raw":
-            self._handle_node_state_raw(parsed)
+        if parsed.path == "/api/v1/slot-state":
+            self._handle_slot_state(parsed)
             return
         if parsed.path == "/api/v1/cameras":
             self._handle_cameras()
@@ -206,34 +216,20 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _handle_slots(self) -> None:
-        snapshot = self.server.runtime.raw_snapshot()
+        snapshot = self.server.runtime.snapshot()
         self._write_json(snapshot)
 
-    def _handle_node_state(self, parsed) -> None:
+    def _handle_slot_state(self, parsed) -> None:
         from urllib.parse import parse_qs
 
         query = parse_qs(parsed.query, keep_blank_values=True)
-        node_name = str(query.get("nodeName", [""])[0]).strip()
-        if not node_name:
-            self._write_error(HTTPStatus.BAD_REQUEST, "missing_nodeName", "Query parameter nodeName is required.")
+        slot_id = str(query.get("slot_id", [""])[0]).strip()
+        if not slot_id:
+            self._write_error(HTTPStatus.BAD_REQUEST, "missing_slot_id", "Query parameter slot_id is required.")
             return
-        payload = self.server.runtime.node_state_payload(node_name)
+        payload = self.server.runtime.slot_state_payload(slot_id)
         if payload is None:
-            self._write_error(HTTPStatus.NOT_FOUND, "node_not_found", f"Node not found: {node_name}")
-            return
-        self._write_json(payload)
-
-    def _handle_node_state_raw(self, parsed) -> None:
-        from urllib.parse import parse_qs
-
-        query = parse_qs(parsed.query, keep_blank_values=True)
-        node_name = str(query.get("nodeName", [""])[0]).strip()
-        if not node_name:
-            self._write_error(HTTPStatus.BAD_REQUEST, "missing_nodeName", "Query parameter nodeName is required.")
-            return
-        payload = self.server.runtime.raw_node_state_payload(node_name)
-        if payload is None:
-            self._write_error(HTTPStatus.NOT_FOUND, "node_not_found", f"Node not found: {node_name}")
+            self._write_error(HTTPStatus.NOT_FOUND, "slot_not_found", f"Slot not found: slot_id={slot_id}")
             return
         self._write_json(payload)
 
@@ -267,7 +263,7 @@ class VisionRequestHandler(BaseHTTPRequestHandler):
         conn.settimeout(1.0)
         self.server.runtime.register_ws_client(conn)
         try:
-            self.server.runtime.send_current_raw_snapshot_to_client(conn)
+            self.server.runtime.send_current_public_snapshot_to_client(conn)
             self.server.runtime.hold_ws_connection(conn)
         finally:
             self.server.runtime.unregister_ws_client(conn)

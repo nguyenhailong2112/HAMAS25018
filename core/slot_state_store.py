@@ -45,7 +45,6 @@ class SlotStateStore:
                 self._latest[key] = {
                     "camera_id": bundle.camera_id,
                     "slot_id": zone_cfg.zone_id,
-                    "nodeName": zone_cfg.node_name,
                     "state": "Unknown",
                 }
 
@@ -77,7 +76,6 @@ class SlotStateStore:
                     camera_id,
                     zone_cfg.zone_id,
                     state,
-                    node_name=zone_cfg.node_name,
                     camera_name=camera_name,
                     detect_ms=detect_ms,
                     frame_id=frame_id,
@@ -86,15 +84,17 @@ class SlotStateStore:
     def get_snapshot(self, timestamp: float) -> dict[str, Any]:
         with self._lock:
             items = sorted(
-                [{"nodeName": item.get("nodeName", ""), "state": item.get("state", "Unknown")} for item in self._latest.values()],
-                key=lambda item: str(item.get("nodeName", "")),
+                [
+                    {
+                        "camera_id": item.get("camera_id"),
+                        "slot_id": item.get("slot_id"),
+                        "state": item.get("state", "Unknown"),
+                    }
+                    for item in self._latest.values()
+                ],
+                key=lambda item: (str(item.get("camera_id", "")), str(item.get("slot_id", ""))),
             )
-            snapshot = build_snapshot_payload(items, timestamp)
-            snapshot["camera_count"] = len(self._camera_meta)
-            snapshot["online_camera_count"] = sum(1 for meta in self._camera_meta.values() if meta.get("health") == "online")
-            snapshot["camera_meta"] = list(self._camera_meta.values())
-            snapshot["camera_layout"] = self._build_camera_layout()
-            return snapshot
+            return build_snapshot_payload(items, timestamp)
 
     def get_raw_snapshot(self, timestamp: float) -> dict[str, Any]:
         with self._lock:
@@ -103,7 +103,6 @@ class SlotStateStore:
                     {
                         "camera_id": item.get("camera_id"),
                         "slot_id": item.get("slot_id"),
-                        "nodeName": item.get("nodeName"),
                         "state": item.get("state", "Unknown"),
                     }
                     for item in self._latest.values()
@@ -124,7 +123,7 @@ class SlotStateStore:
                 for key, payload in self._latest.items()
                 if key.startswith(f"{camera_id}:")
             ]
-            items.sort(key=lambda item: str(item.get("nodeName", "")))
+            items.sort(key=lambda item: str(item.get("slot_id", "")))
             snapshot = build_snapshot_payload(items, timestamp)
             snapshot["camera"] = self._camera_meta.get(camera_id, {"camera_id": camera_id})
             return snapshot
@@ -139,7 +138,6 @@ class SlotStateStore:
                     item = {
                         "camera_id": camera_id,
                         "slot_id": zone_cfg.zone_id,
-                        "nodeName": zone_cfg.node_name,
                         "state": "Unknown",
                     }
                 slots.append(dict(item))
@@ -147,23 +145,23 @@ class SlotStateStore:
                 {
                     "camera_id": camera_id,
                     "camera_name": bundle.camera_name,
-                    "slots": sorted(slots, key=lambda item: str(item.get("nodeName", ""))),
+                    "slots": sorted(slots, key=lambda item: str(item.get("slot_id", ""))),
                 }
             )
         return layout
 
-    def get_slot(self, camera_id: str, slot_id: str, timestamp: float) -> dict[str, Any] | None:
+    def get_slot(self, camera_id: str, slot_id: str) -> dict[str, Any] | None:
         with self._lock:
             item = self._latest.get(self._slot_key(camera_id, slot_id))
             return dict(item) if item is not None else None
 
-    def get_node(self, node_name: str) -> dict[str, Any] | None:
-        normalized = str(node_name).strip()
+    def get_slot_by_id(self, slot_id: str) -> dict[str, Any] | None:
+        normalized = str(slot_id).strip()
         if not normalized:
             return None
         with self._lock:
             for item in self._latest.values():
-                if str(item.get("nodeName", "")).strip() == normalized:
+                if str(item.get("slot_id", "")).strip() == normalized:
                     return dict(item)
         return None
 

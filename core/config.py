@@ -78,14 +78,10 @@ def load_zone_configs(path: str | Path) -> list[ZoneConfig]:
         zone_id = _coerce_str(item.get("zone_id", item.get("slot_id", ""))).strip()
         if not zone_id:
             raise ValueError(f"Zone zone_id or slot_id is required in {path}")
-        node_name = _coerce_str(item.get("nodeName", item.get("node_name", zone_id))).strip()
-        if not node_name:
-            raise ValueError(f"Zone nodeName or node_name is required in {path}")
         polygon = [(float(x), float(y)) for x, y in item["polygon"]]
         zones.append(
             ZoneConfig(
                 zone_id=zone_id,
-                node_name=node_name,
                 target_object=target_object,
                 polygon=polygon,
                 spatial_method=spatial_method or None,

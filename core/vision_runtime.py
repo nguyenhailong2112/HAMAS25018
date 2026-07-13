@@ -118,6 +118,7 @@ class VisionRuntime:
         self._event_log_path = self.history_dir / "vision_events.jsonl"
         self._recent_events: deque[dict[str, Any]] = deque(maxlen=300)
         self._build_camera_runtimes()
+        self._validate_unique_slot_ids()
         self._record_event("server_start", {"camera_count": len(self.camera_configs)})
 
     def _build_camera_runtimes(self) -> None:
@@ -159,6 +160,16 @@ class VisionRuntime:
             bundles.append(CameraSlotBundle(camera_id=camera_cfg.camera_id, camera_name=camera_cfg.name, zone_configs=zone_configs))
 
         self.state_store = SlotStateStore(bundles)
+
+    def _validate_unique_slot_ids(self) -> None:
+        seen: dict[str, str] = {}
+        for runtime in self.camera_runtimes:
+            for zone in runtime.zone_configs:
+                slot_id = str(zone.zone_id).strip()
+                owner = seen.get(slot_id)
+                if owner is not None and owner != runtime.camera_id:
+                    raise ValueError(f"Duplicate slot_id detected: {slot_id} on cameras {owner} and {runtime.camera_id}")
+                seen[slot_id] = runtime.camera_id
 
     def _build_reader(self, camera_id: str, source_type: str, source_path: str, frame_store: FrameStore):
         decode_fps = float(self.ingest_cfg.reader_output_fps)
@@ -294,7 +305,6 @@ class VisionRuntime:
                     {
                         "camera_id": state.camera_id,
                         "zone_id": state.zone_id,
-                        "nodeName": next((zone.node_name for zone in runtime.zone_configs if zone.zone_id == state.zone_id), state.zone_id),
                         "state": state.state,
                         "score": round(float(state.score), 4),
                         "timestamp": state.timestamp,
@@ -328,6 +338,17 @@ class VisionRuntime:
     def raw_snapshot(self, timestamp: float | None = None) -> dict[str, Any]:
         return self.state_store.get_raw_snapshot(timestamp or time.time())
 
+    def slot_state_payload(self, slot_id: str) -> dict[str, Any] | None:
+        item = self.state_store.get_slot_by_id(slot_id)
+        if item is None:
+            return None
+        return {
+            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
+            "camera_id": item.get("camera_id"),
+            "slot_id": item.get("slot_id"),
+            "state": item.get("state", "Unknown"),
+        }
+
     def cameras_payload(self) -> dict[str, Any]:
         payload = {
             "timestamp": build_snapshot_payload([], time.time())["timestamp"],
@@ -345,29 +366,6 @@ class VisionRuntime:
                 }
             )
         return payload
-
-    def node_state_payload(self, node_name: str) -> dict[str, Any] | None:
-        item = self.state_store.get_node(node_name)
-        if item is None:
-            return None
-        return {
-            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
-            "nodeName": item.get("nodeName"),
-            "state": item.get("state", "Unknown"),
-            "slot": item,
-        }
-
-    def raw_node_state_payload(self, node_name: str) -> dict[str, Any] | None:
-        item = self.state_store.get_node(node_name)
-        if item is None:
-            return None
-        return {
-            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
-            "nodeName": item.get("nodeName"),
-            "camera_id": item.get("camera_id"),
-            "slot_id": item.get("slot_id"),
-            "state": item.get("state", "Unknown"),
-        }
 
     def recent_events_payload(self, limit: int = 100) -> dict[str, Any]:
         limit = max(1, min(int(limit), 300))
@@ -407,15 +405,14 @@ class VisionRuntime:
         self.broadcast_event(payload)
 
     def build_health_payload(self) -> dict[str, Any]:
-        snapshot = self.snapshot()
         return {
             "status": "online" if not self.should_stop() else "stopping",
-            "timestamp": snapshot["timestamp"],
+            "timestamp": build_snapshot_payload([], time.time())["timestamp"],
             "uptime_sec": round(time.time() - self._start_ts, 3),
-            "camera_count": snapshot.get("camera_count", 0),
-            "online_camera_count": snapshot.get("online_camera_count", 0),
-            "total_slots": snapshot.get("total_slots", 0),
-            "unknown_slots": sum(1 for item in snapshot.get("slots", []) if item.get("state") == "Unknown"),
+            "camera_count": len(self.camera_runtimes),
+            "online_camera_count": sum(1 for runtime in self.camera_runtimes if runtime.get_health() == "online"),
+            "total_slots": sum(len(runtime.zone_configs) for runtime in self.camera_runtimes),
+            "unknown_slots": sum(1 for item in self.snapshot().get("slots", []) if item.get("state") == "Unknown"),
         }
 
     def server_info_payload(self) -> dict[str, Any]:
@@ -431,8 +428,7 @@ class VisionRuntime:
                 "health": "/health",
                 "server_info": "/api/v1/server-info",
                 "slots_snapshot": "/api/v1/slots",
-                "node_state": "/api/v1/node-state?nodeName=",
-                "node_state_raw": "/api/v1/node-state-raw?nodeName=",
+                "slot_state": "/api/v1/slot-state?slot_id=",
                 "events": "/api/v1/events",
                 "logs": "/api/v1/logs",
                 "cameras": "/api/v1/cameras",
@@ -442,7 +438,7 @@ class VisionRuntime:
             },
             "slot_contract": {
                 "states": ["Empty", "Car Full", "Unknown"],
-                "required_fields": ["nodeName", "state"],
+                "required_fields": ["camera_id", "slot_id", "state"],
                 "unknown_rule": "Unknown must not be treated as Empty.",
             },
             "runtime": {
@@ -522,6 +518,11 @@ class VisionRuntime:
 
     def send_current_raw_snapshot_to_client(self, conn) -> None:
         snapshot = self.raw_snapshot()
+        frame = self._encode_ws_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+        conn.sendall(frame)
+
+    def send_current_public_snapshot_to_client(self, conn) -> None:
+        snapshot = self.snapshot()
         frame = self._encode_ws_text(json.dumps(snapshot, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
         conn.sendall(frame)
 

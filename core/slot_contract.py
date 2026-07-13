@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
-from core.types import ZoneConfig, ZoneState
+from core.types import ZoneState
 
 
 @dataclass(frozen=True)
@@ -12,7 +12,6 @@ class SlotConfigView:
     camera_id: str
     zone_id: str
     name: str
-    node_name: str
 
 
 def format_timestamp(ts: float | None) -> str | None:
@@ -31,7 +30,7 @@ def state_to_public_label(state: str) -> str:
 
 def build_public_slot_item(
     camera_id: str,
-    zone: ZoneConfig,
+    slot_id: str,
     state: ZoneState,
     *,
     camera_name: str | None = None,
@@ -39,7 +38,8 @@ def build_public_slot_item(
     frame_id: int | None = None,
 ) -> dict[str, Any]:
     return {
-        "nodeName": zone.node_name,
+        "camera_id": camera_id,
+        "slot_id": slot_id,
         "state": state_to_public_label(state.state),
     }
 
@@ -49,19 +49,15 @@ def build_raw_slot_item(
     slot_id: str,
     state: ZoneState,
     *,
-    node_name: str | None = None,
     camera_name: str | None = None,
     detect_ms: float | None = None,
     frame_id: int | None = None,
 ) -> dict[str, Any]:
-    payload = {
+    return {
         "camera_id": camera_id,
         "slot_id": slot_id,
         "state": state_to_public_label(state.state),
     }
-    if node_name:
-        payload["nodeName"] = node_name
-    return payload
 
 
 def build_snapshot_payload(items: list[dict[str, Any]], timestamp: float) -> dict[str, Any]:

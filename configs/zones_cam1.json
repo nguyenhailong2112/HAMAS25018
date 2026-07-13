@@ -4,7 +4,6 @@
   "zones": [
     {
       "zone_id": "10",
-      "nodeName": "predock_oil_4",
       "target_object": "pallet",
       "polygon": [
         [
@@ -31,7 +30,6 @@
     },
     {
       "zone_id": "9",
-      "nodeName": "predock_oil_3",
       "target_object": "pallet",
       "polygon": [
         [
@@ -58,7 +56,6 @@
     },
     {
       "zone_id": "8",
-      "nodeName": "predock_oil_2",
       "target_object": "pallet",
       "polygon": [
         [
@@ -85,7 +82,6 @@
     },
     {
       "zone_id": "13",
-      "nodeName": "drop_oil_8",
       "target_object": "pallet",
       "polygon": [
         [
@@ -112,7 +108,6 @@
     },
     {
       "zone_id": "12",
-      "nodeName": "drop_oil_7",
       "target_object": "pallet",
       "polygon": [
         [
@@ -139,7 +134,6 @@
     },
     {
       "zone_id": "11",
-      "nodeName": "drop_oil_6",
       "target_object": "pallet",
       "polygon": [
         [

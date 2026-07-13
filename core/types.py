@@ -30,7 +30,6 @@ class IngestConfig:
 @dataclass
 class ZoneConfig:
     zone_id: str
-    node_name: str
     target_object: str
     polygon: list[tuple[float, float]]
     spatial_method: str | None = None
