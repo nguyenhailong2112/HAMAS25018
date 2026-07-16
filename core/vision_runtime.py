@@ -21,7 +21,7 @@ from core.config import (
     validate_ingest_config,
     validate_rule_config,
 )
-from core.file_utils import append_jsonl_rotating, tail_text_lines, write_json_atomic
+from core.file_utils import append_jsonl_rotating, purge_older_than, tail_text_lines, write_json_atomic
 from core.frame_store import FrameStore
 from core.logger_config import get_logger
 from core.path_utils import PROJECT_ROOT, ensure_exists, resolve_project_path, user_config_dir
@@ -92,7 +92,8 @@ class VisionRuntime:
 
         self.export_interval_sec = max(0.1, float(self.runtime_cfg.get("export_interval_ms", 500)) / 1000.0)
         self.debug_export_interval_sec = 1.0 / max(1.0, float(self.runtime_cfg.get("debug_export_fps", 2.0)))
-        self.websocket_push_interval_sec = 1.0 / max(0.5, float(self.runtime_cfg.get("websocket_push_fps", 3.0)))
+        websocket_push_interval_ms = float(self.runtime_cfg.get("websocket_push_interval_ms", 2000))
+        self.websocket_push_interval_sec = max(0.1, websocket_push_interval_ms / 1000.0)
         self.preview_width = int(self.runtime_cfg.get("preview_width", 960))
         self.preview_height = int(self.runtime_cfg.get("preview_height", 540))
         self.schedule_sleep_sec = max(0.001, float(self.runtime_cfg.get("schedule_sleep_ms", 5)) / 1000.0)
@@ -114,11 +115,15 @@ class VisionRuntime:
         self._runtime_lock = threading.Lock()
         self._last_export_ts = 0.0
         self._last_ws_broadcast_ts = 0.0
+        self._last_outputs_cleanup_ts = 0.0
         self._log_state_path = self.history_dir / "slot_state_changes.jsonl"
         self._event_log_path = self.history_dir / "vision_events.jsonl"
+        self._outputs_retention_days = max(1, int(self.runtime_cfg.get("outputs_retention_days", 7)))
+        self._outputs_cleanup_interval_sec = max(60.0, float(self.runtime_cfg.get("outputs_cleanup_interval_sec", 86400)))
         self._recent_events: deque[dict[str, Any]] = deque(maxlen=300)
         self._build_camera_runtimes()
         self._validate_unique_slot_ids()
+        self._cleanup_old_outputs(force=True)
         self._record_event("server_start", {"camera_count": len(self.camera_configs)})
 
     def _build_camera_runtimes(self) -> None:
@@ -226,6 +231,8 @@ class VisionRuntime:
                 if (now_ts - self._last_ws_broadcast_ts) >= self.websocket_push_interval_sec:
                     self._last_ws_broadcast_ts = now_ts
                     self.broadcast(current_snapshot)
+
+                self._cleanup_old_outputs(now_ts)
 
                 time.sleep(self.schedule_sleep_sec)
         finally:
@@ -443,7 +450,7 @@ class VisionRuntime:
             },
             "runtime": {
                 "camera_count": len(self.camera_runtimes),
-                "websocket_push_fps": round(1.0 / self.websocket_push_interval_sec, 3),
+                "websocket_push_interval_ms": int(round(self.websocket_push_interval_sec * 1000.0)),
                 "snapshot_export_interval_sec": self.export_interval_sec,
             },
             "security": {
@@ -476,6 +483,25 @@ class VisionRuntime:
 
     def _export_snapshot(self, snapshot: dict[str, Any]) -> None:
         write_json_atomic(self.slot_snapshot_path, snapshot, indent=None)
+
+    def _cleanup_old_outputs(self, now_ts: float | None = None, *, force: bool = False) -> None:
+        current_ts = time.time() if now_ts is None else float(now_ts)
+        if not force and (current_ts - self._last_outputs_cleanup_ts) < self._outputs_cleanup_interval_sec:
+            return
+        removed = purge_older_than(
+            self.project_root / "outputs",
+            max_age_sec=float(self._outputs_retention_days) * 24.0 * 3600.0,
+            now_ts=current_ts,
+        )
+        self._last_outputs_cleanup_ts = current_ts
+        if removed:
+            self._record_event(
+                "outputs_cleanup",
+                {
+                    "retention_days": self._outputs_retention_days,
+                    "removed_files": removed,
+                },
+            )
 
     def register_ws_client(self, conn) -> None:
         with self._ws_client_lock:

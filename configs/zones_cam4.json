@@ -1,10 +1,9 @@
 {
   "source": "C:\\Users\\longn\\PyCharmMiscProject\\HAMAS25018\\dataTest\\imageTest\\Cam4\\img.png",
-  "target_object": "pallet",
+  "target_objects": ["pallet", "trolley"],
   "zones": [
     {
       "zone_id": "1",
-      "target_object": "pallet",
       "polygon": [
         [
           0.338889,
@@ -30,7 +29,6 @@
     },
     {
       "zone_id": "2",
-      "target_object": "pallet",
       "polygon": [
         [
           0.536111,
@@ -56,7 +54,6 @@
     },
     {
       "zone_id": "3",
-      "target_object": "pallet",
       "polygon": [
         [
           0.729167,

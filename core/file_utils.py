@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 
 import cv2
@@ -83,3 +84,24 @@ def tail_text_lines(path: Path, limit: int = 100, encoding: str = "utf-8") -> li
     with path.open("r", encoding=encoding, errors="replace") as f:
         lines = f.readlines()
     return [line.rstrip("\n") for line in lines[-limit:]]
+
+
+def purge_older_than(root: Path, *, max_age_sec: float, now_ts: float | None = None) -> int:
+    if max_age_sec <= 0 or not root.exists():
+        return 0
+    now = time.time() if now_ts is None else float(now_ts)
+    cutoff = now - max_age_sec
+    removed = 0
+    for path in root.rglob("*"):
+        try:
+            if not path.is_file():
+                continue
+            if path.stat().st_mtime >= cutoff:
+                continue
+            path.unlink()
+            removed += 1
+        except FileNotFoundError:
+            continue
+        except OSError:
+            continue
+    return removed
